@@ -2,9 +2,7 @@ import { EffectMode, EffectSettings } from '../types';
 
 const ASCII_CHARS = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
 
-// Matrix State
 let drops: number[] = [];
-let lastMatrixTime = 0;
 
 export const renderEffect = (
   ctx: CanvasRenderingContext2D,
@@ -14,7 +12,6 @@ export const renderEffect = (
   width: number,
   height: number
 ) => {
-  // Clear canvas
   ctx.fillStyle = '#000000';
   ctx.fillRect(0, 0, width, height);
 
@@ -38,6 +35,26 @@ export const renderEffect = (
     case EffectMode.Glitch:
       renderGlitch(ctx, video, settings, width, height);
       break;
+      
+    case EffectMode.Halftone:
+      renderHalftone(ctx, video, settings, width, height);
+      break;
+
+    case EffectMode.RgbShift:
+      renderRgbShift(ctx, video, settings, width, height);
+      break;
+
+    case EffectMode.Mirror:
+      renderMirror(ctx, video, settings, width, height);
+      break;
+
+    case EffectMode.Crt:
+      renderCrt(ctx, video, settings, width, height);
+      break;
+
+    case EffectMode.Ripple:
+      renderRipple(ctx, video, settings, width, height);
+      break;
   }
 };
 
@@ -52,7 +69,6 @@ const renderPixelate = (
   const w = Math.ceil(width / size);
   const h = Math.ceil(height / size);
 
-  // Draw small
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = w;
   tempCanvas.height = h;
@@ -62,7 +78,6 @@ const renderPixelate = (
   
   tempCtx.drawImage(video, 0, 0, w, h);
 
-  // Turn off smoothing for crisp pixels
   ctx.imageSmoothingEnabled = false;
   ctx.drawImage(tempCanvas, 0, 0, width, height);
   ctx.imageSmoothingEnabled = true;
@@ -75,11 +90,7 @@ const renderAscii = (
   width: number,
   height: number
 ) => {
-  // Font height (pixels)
   const fontSize = Math.max(6, settings.resolution);
-  
-  // Font width estimation (approx 0.6 aspect ratio for monospace)
-  // This removes gaps between characters horizontally
   const charWidth = fontSize * 0.6;
   const charHeight = fontSize;
 
@@ -94,7 +105,6 @@ const renderAscii = (
   const tempCtx = tempCanvas.getContext('2d');
   if (!tempCtx) return;
 
-  // Draw video resized to the number of columns/rows (1 pixel per character)
   tempCtx.drawImage(video, 0, 0, cols, rows);
   const frameData = tempCtx.getImageData(0, 0, cols, rows).data;
 
@@ -117,7 +127,6 @@ const renderAscii = (
       
       const char = ASCII_CHARS[ASCII_CHARS.length - 1 - charIndex];
       
-      // Draw character at calculated position
       ctx.fillText(char, x * charWidth, y * charHeight);
     }
   }
@@ -130,7 +139,6 @@ const renderMatrix = (
   width: number,
   height: number
 ) => {
-  // Draw faint video background
   ctx.globalAlpha = 0.2;
   ctx.drawImage(video, 0, 0, width, height);
   ctx.globalAlpha = 1.0;
@@ -152,12 +160,10 @@ const renderMatrix = (
     const text = String.fromCharCode(0x30A0 + Math.random() * 96);
     ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-    // Random reset or move down based on speed
     if (drops[i] * fontSize > height && Math.random() > 0.975) {
       drops[i] = 0;
     }
     
-    // Use speed setting to control update rate
     drops[i]++;
   }
 };
@@ -169,21 +175,12 @@ const renderGlitch = (
   width: number,
   height: number
 ) => {
-  // Draw base
   ctx.drawImage(video, 0, 0, width, height);
 
   const intensity = settings.intensity / 100;
   const maxOffset = width * 0.05 * intensity; 
   const sliceHeight = height * 0.1;
 
-  // Chromatic Aberration
-  if (Math.random() < intensity) {
-    const imageData = ctx.getImageData(0, 0, width, height);
-    // This is computationally heavy to do manually in JS per pixel
-    // Simulating via multiple draws with composite modes is faster for realtime
-  }
-
-  // Slice displacement
   const slices = Math.floor(10 * intensity);
   
   for (let i = 0; i < slices; i++) {
@@ -198,7 +195,6 @@ const renderGlitch = (
             xOffset, y, width, h
         );
         
-        // Color channel shift (simulated by overlaying colored rectangles with blending)
         if (Math.random() > 0.5) {
              ctx.fillStyle = `rgba(${Math.random() * 255}, 255, 255, 0.2)`;
              ctx.globalCompositeOperation = 'overlay';
@@ -207,7 +203,168 @@ const renderGlitch = (
         }
 
     } catch(e) {
-        // Ignore edge case errors
     }
+  }
+};
+
+const renderHalftone = (
+  ctx: CanvasRenderingContext2D,
+  video: HTMLVideoElement,
+  settings: EffectSettings,
+  width: number,
+  height: number
+) => {
+  const gridSize = Math.max(5, settings.resolution);
+  
+  const cols = Math.ceil(width / gridSize);
+  const rows = Math.ceil(height / gridSize);
+  
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = cols;
+  tempCanvas.height = rows;
+  const tempCtx = tempCanvas.getContext('2d');
+  if (!tempCtx) return;
+  
+  tempCtx.drawImage(video, 0, 0, cols, rows);
+  const data = tempCtx.getImageData(0, 0, cols, rows).data;
+  
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = settings.color;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const idx = (y * cols + x) * 4;
+      const brightness = (data[idx] + data[idx + 1] + data[idx + 2]) / 3 / 255;
+      
+      const radius = (gridSize / 2) * (1 - brightness) * 1.2;
+      
+      if (radius > 0) {
+        ctx.beginPath();
+        ctx.arc(
+            x * gridSize + gridSize / 2, 
+            y * gridSize + gridSize / 2, 
+            radius, 
+            0, 
+            Math.PI * 2
+        );
+        ctx.fill();
+      }
+    }
+  }
+};
+
+const renderRgbShift = (
+  ctx: CanvasRenderingContext2D,
+  video: HTMLVideoElement,
+  settings: EffectSettings,
+  width: number,
+  height: number
+) => {
+  ctx.drawImage(video, 0, 0, width, height);
+
+  const offset = settings.intensity * 0.5;
+  if (offset <= 0) return;
+
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+  const copy = new Uint8ClampedArray(data);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const index = (y * width + x) * 4;
+      
+      const leftX = Math.max(0, x - Math.floor(offset));
+      const rightX = Math.min(width - 1, x + Math.floor(offset));
+      
+      const redIndex = (y * width + leftX) * 4;
+      data[index] = copy[redIndex];
+      
+      const blueIndex = (y * width + rightX) * 4 + 2;
+      data[index + 2] = copy[blueIndex];
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+};
+
+const renderMirror = (
+  ctx: CanvasRenderingContext2D,
+  video: HTMLVideoElement,
+  settings: EffectSettings,
+  width: number,
+  height: number
+) => {
+  const halfWidth = width / 2;
+  
+  ctx.drawImage(video, 
+    0, 0, video.videoWidth / 2, video.videoHeight, 
+    0, 0, halfWidth, height
+  );
+
+  ctx.save();
+  ctx.translate(width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 
+    0, 0, video.videoWidth / 2, video.videoHeight, 
+    0, 0, halfWidth, height
+  );
+  ctx.restore();
+};
+
+const renderCrt = (
+  ctx: CanvasRenderingContext2D,
+  video: HTMLVideoElement,
+  settings: EffectSettings,
+  width: number,
+  height: number
+) => {
+  ctx.drawImage(video, 0, 0, width, height);
+
+  const scanlineOpacity = settings.intensity / 100;
+  const lineSpacing = Math.max(2, Math.floor(settings.resolution / 2));
+  
+  ctx.fillStyle = `rgba(0, 0, 0, ${scanlineOpacity})`;
+  
+  for (let y = 0; y < height; y += lineSpacing) {
+    ctx.fillRect(0, y, width, 1);
+  }
+
+  const gradient = ctx.createRadialGradient(width/2, height/2, height/3, width/2, height/2, height);
+  gradient.addColorStop(0, "rgba(0,0,0,0)");
+  gradient.addColorStop(1, "rgba(0,0,0,0.6)");
+  
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = settings.color;
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = 0.1;
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = 1.0;
+  ctx.globalCompositeOperation = 'source-over';
+};
+
+const renderRipple = (
+  ctx: CanvasRenderingContext2D,
+  video: HTMLVideoElement,
+  settings: EffectSettings,
+  width: number,
+  height: number
+) => {
+  const time = Date.now() / 1000;
+  const frequency = settings.resolution / 100;
+  const amplitude = settings.intensity / 2;
+  
+  const sliceHeight = 2;
+  
+  for (let y = 0; y < height; y += sliceHeight) {
+    const xOffset = Math.sin((y * frequency) + (time * 2)) * amplitude;
+    
+    ctx.drawImage(
+      video,
+      0, y, video.videoWidth, sliceHeight,
+      xOffset, y, width + (amplitude * 2), sliceHeight
+    );
   }
 };

@@ -13,7 +13,6 @@ export const useCamera = (constraints: MediaStreamConstraints) => {
       try {
         const newStream = await navigator.mediaDevices.getUserMedia(constraints);
         
-        // If component unmounted while waiting for permission, stop immediately
         if (!isMounted) {
           newStream.getTracks().forEach(track => track.stop());
           return;
@@ -24,13 +23,11 @@ export const useCamera = (constraints: MediaStreamConstraints) => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           
-          // Try to play immediately
           try {
             await videoRef.current.play();
             if (isMounted) setStreamReady(true);
           } catch (e) {
-            console.warn("Autoplay blocked or failed, waiting for user interaction or metadata", e);
-            // Fallback: wait for metadata if play failed immediately
+            console.warn("Autoplay blocked or failed", e);
             videoRef.current.onloadedmetadata = async () => {
                if (isMounted) {
                  try {

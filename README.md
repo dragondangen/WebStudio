@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# WebStudio
 
-# Run and deploy your AI Studio app
+WebStudio is a creative webcam playground that applies real-time visual effects to your camera feed. It runs entirely in the browser using HTML5 Canvas and React.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/drive/16yfnuD_5Y-qT3dapjCyKNp-2cHl-EQ-2
+- **Real-time Effects**:
+  - **ASCII**: Converts video to ASCII characters.
+  - **Matrix**: Falling code rain effect.
+  - **Glitch**: Digital signal corruption style.
+  - **Pixelate**: Retro low-res look.
+  - **Halftone**: Comic book style dots.
+  - **RGB Shift**: Chromatic aberration.
+  - **Mirror**: Symmetrical reflection.
+  - **CRT**: Old TV scanlines and vignette.
+  - **Ripple**: Water-like wave distortion.
 
-## Run Locally
+- **Virtual Camera / Pop-out**: Detach the video into a clean popup window. This is useful for capturing the effect in streaming software like OBS or using it as a source in other applications.
+- **Image Capture**: Instantly save high-quality snapshots of your current effect.
 
-**Prerequisites:**  Node.js
+## Usage
 
+1.  Allow camera permissions when prompted.
+2.  Select an effect from the sidebar menu.
+3.  Adjust parameters (intensity, resolution, color) in the settings panel.
+4.  Click "Capture Frame" to save an image.
+5.  Click "Virtual Camera" to open a dedicated popup window for streaming.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Technologies
+
+- React 19
+- TypeScript
+- Tailwind CSS
+- Lucide Icons

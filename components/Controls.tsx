@@ -8,7 +8,12 @@ import {
   Grid3X3, 
   Settings2,
   Image as ImageIcon,
-  MonitorUp
+  MonitorUp,
+  Newspaper,
+  Move3d,
+  FlipHorizontal,
+  Tv,
+  Waves
 } from 'lucide-react';
 
 interface ControlsProps {
@@ -31,10 +36,15 @@ const Controls: React.FC<ControlsProps> = ({
   
   const modes = [
     { id: EffectMode.None, label: 'Normal', icon: Camera },
+    { id: EffectMode.Mirror, label: 'Mirror', icon: FlipHorizontal },
+    { id: EffectMode.Crt, label: 'CRT', icon: Tv },
+    { id: EffectMode.Ripple, label: 'Ripple', icon: Waves },
+    { id: EffectMode.Glitch, label: 'Glitch', icon: Zap },
+    { id: EffectMode.RgbShift, label: 'RGB Shift', icon: Move3d },
     { id: EffectMode.Ascii, label: 'ASCII', icon: Terminal },
     { id: EffectMode.Matrix, label: 'Matrix', icon: Binary },
-    { id: EffectMode.Glitch, label: 'Glitch', icon: Zap },
     { id: EffectMode.Pixelate, label: 'Pixelate', icon: Grid3X3 },
+    { id: EffectMode.Halftone, label: 'Halftone', icon: Newspaper },
   ];
 
   return (
@@ -45,20 +55,20 @@ const Controls: React.FC<ControlsProps> = ({
 
       <div className="mb-8">
         <h3 className="text-xs uppercase tracking-wider text-zinc-500 mb-4 font-semibold">Modes</h3>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {modes.map((m) => {
             const Icon = m.icon;
             return (
               <button
                 key={m.id}
                 onClick={() => setMode(m.id)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                className={`flex items-center flex-col justify-center gap-2 px-2 py-4 rounded-lg transition-all duration-200 text-sm ${
                   currentMode === m.id
                     ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/50'
                     : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'
                 }`}
               >
-                <Icon size={18} />
+                <Icon size={20} />
                 <span className="font-medium">{m.label}</span>
               </button>
             );
@@ -134,6 +144,124 @@ const Controls: React.FC<ControlsProps> = ({
               <input
                 type="range"
                 min="2"
+                max="50"
+                value={settings.resolution}
+                onChange={(e) => setSettings(p => ({ ...p, resolution: Number(e.target.value) }))}
+                className="w-full accent-emerald-500"
+              />
+            </div>
+          </div>
+        )}
+
+        {currentMode === EffectMode.Halftone && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Dot Size ({settings.resolution})</label>
+              <input
+                type="range"
+                min="5"
+                max="30"
+                value={settings.resolution}
+                onChange={(e) => setSettings(p => ({ ...p, resolution: Number(e.target.value) }))}
+                className="w-full accent-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Ink Color</label>
+              <input
+                type="color"
+                value={settings.color}
+                onChange={(e) => setSettings(p => ({ ...p, color: e.target.value }))}
+                className="w-full h-8 rounded bg-zinc-800 border-none cursor-pointer"
+              />
+            </div>
+          </div>
+        )}
+
+        {currentMode === EffectMode.RgbShift && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Separation Amount</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={settings.intensity}
+                onChange={(e) => setSettings(p => ({ ...p, intensity: Number(e.target.value) }))}
+                className="w-full accent-emerald-500"
+              />
+            </div>
+          </div>
+        )}
+        
+        {currentMode === EffectMode.Mirror && (
+          <div className="space-y-4">
+             <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Center Line</label>
+              <input
+                type="color"
+                value={settings.color}
+                onChange={(e) => setSettings(p => ({ ...p, color: e.target.value }))}
+                className="w-full h-8 rounded bg-zinc-800 border-none cursor-pointer"
+              />
+            </div>
+          </div>
+        )}
+
+        {currentMode === EffectMode.Crt && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Scanline Opacity</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={settings.intensity}
+                onChange={(e) => setSettings(p => ({ ...p, intensity: Number(e.target.value) }))}
+                className="w-full accent-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Line Thickness</label>
+              <input
+                type="range"
+                min="2"
+                max="10"
+                value={settings.resolution}
+                onChange={(e) => setSettings(p => ({ ...p, resolution: Number(e.target.value) }))}
+                className="w-full accent-emerald-500"
+              />
+            </div>
+             <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Tint Color</label>
+              <input
+                type="color"
+                value={settings.color}
+                onChange={(e) => setSettings(p => ({ ...p, color: e.target.value }))}
+                className="w-full h-8 rounded bg-zinc-800 border-none cursor-pointer"
+              />
+            </div>
+          </div>
+        )}
+
+        {currentMode === EffectMode.Ripple && (
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Wave Amplitude</label>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={settings.intensity}
+                onChange={(e) => setSettings(p => ({ ...p, intensity: Number(e.target.value) }))}
+                className="w-full accent-emerald-500"
+              />
+            </div>
+             <div>
+              <label className="text-xs text-zinc-400 mb-1 block">Wave Frequency</label>
+              <input
+                type="range"
+                min="1"
                 max="50"
                 value={settings.resolution}
                 onChange={(e) => setSettings(p => ({ ...p, resolution: Number(e.target.value) }))}

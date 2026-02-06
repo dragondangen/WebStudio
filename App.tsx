@@ -15,7 +15,6 @@ const App: React.FC = () => {
   });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const pipVideoRef = useRef<HTMLVideoElement | null>(null);
-  // Ref to track the popup window instance
   const popupWindowRef = useRef<Window | null>(null); 
   const animationRef = useRef<number>(0);
   
@@ -34,7 +33,6 @@ const App: React.FC = () => {
        return;
     }
 
-    // Match canvas size to video
     if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -53,7 +51,6 @@ const App: React.FC = () => {
     }
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      // Close popup on unmount
       if (popupWindowRef.current && !popupWindowRef.current.closed) {
         popupWindowRef.current.close();
       }
@@ -72,24 +69,17 @@ const App: React.FC = () => {
   const handleVirtualCamera = async () => {
     if (!canvasRef.current) return;
 
-    // --- TOGGLE OFF LOGIC ---
-
-    // 1. Close Popup if it exists
     if (popupWindowRef.current && !popupWindowRef.current.closed) {
         popupWindowRef.current.close();
         popupWindowRef.current = null;
-        return; // Stop here
+        return;
     }
 
-    // 2. Close Picture-in-Picture if active
     if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
-        return; // Stop here
+        return;
     }
 
-    // --- TOGGLE ON LOGIC ---
-
-    // 3. Get Stream
     let stream: MediaStream;
     try {
        // @ts-ignore
@@ -101,7 +91,6 @@ const App: React.FC = () => {
 
     const pipVideo = pipVideoRef.current;
 
-    // Helper to open Popup
     const openPopupFallback = () => {
         const width = canvasRef.current?.width || 800;
         const height = canvasRef.current?.height || 600;
@@ -113,7 +102,6 @@ const App: React.FC = () => {
             return;
         }
 
-        // Store ref for toggling later
         popupWindowRef.current = win;
         
         win.document.title = "WebStudio - Virtual Camera Output";
@@ -136,13 +124,11 @@ const App: React.FC = () => {
         
         win.document.body.appendChild(winVideo);
 
-        // Clear ref when window is manually closed by user
         win.onbeforeunload = () => {
             popupWindowRef.current = null;
         };
     };
 
-    // 4. Try Standard PiP first
     try {
         const isPipSupported = 
             'pictureInPictureEnabled' in document && 
@@ -161,20 +147,16 @@ const App: React.FC = () => {
         }
 
     } catch (e) {
-        // 5. Fallback to Popup silently if PiP fails
         openPopupFallback();
     }
   };
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-black text-white overflow-hidden">
-      {/* Hidden Video Source for Input */}
       <video ref={videoRef} className="hidden" playsInline muted autoPlay />
       
-      {/* Hidden Video Target for Virtual Camera (PiP) */}
       <video ref={pipVideoRef} className="hidden" playsInline muted autoPlay />
 
-      {/* Main Viewport */}
       <div className="flex-1 relative flex items-center justify-center bg-zinc-950 p-4">
         {error ? (
           <div className="text-red-500 bg-red-900/20 p-6 rounded-lg border border-red-900">
@@ -199,7 +181,6 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      {/* Sidebar Controls */}
       <Controls 
         currentMode={mode}
         setMode={setMode}
