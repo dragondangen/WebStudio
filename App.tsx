@@ -3,6 +3,7 @@ import { useCamera } from './hooks/useCamera';
 import Controls from './components/Controls';
 import { EffectMode, EffectSettings, DEFAULT_SETTINGS } from './types';
 import { renderEffect } from './services/effectRenderer';
+import { Menu } from 'lucide-react';
 
 const App: React.FC = () => {
   const { videoRef, streamReady, error } = useCamera({
@@ -20,6 +21,7 @@ const App: React.FC = () => {
   
   const [mode, setMode] = useState<EffectMode>(EffectMode.Ascii);
   const [settings, setSettings] = useState<EffectSettings>(DEFAULT_SETTINGS);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const draw = () => {
     if (!videoRef.current || !canvasRef.current || !streamReady) return;
@@ -152,36 +154,48 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-black text-white overflow-hidden">
+    <div className="relative w-full h-[100dvh] bg-black overflow-hidden">
       <video ref={videoRef} className="hidden" playsInline muted autoPlay />
-      
       <video ref={pipVideoRef} className="hidden" playsInline muted autoPlay />
 
-      <div className="flex-1 relative flex items-center justify-center bg-zinc-950 p-4">
+      {/* Main Canvas Area */}
+      <div className="absolute inset-0 flex items-center justify-center bg-zinc-950">
         {error ? (
-          <div className="text-red-500 bg-red-900/20 p-6 rounded-lg border border-red-900">
+          <div className="z-10 text-red-500 bg-red-900/20 p-6 rounded-lg border border-red-900 max-w-sm text-center mx-4">
             {error}
           </div>
         ) : (
-          <div className="relative shadow-2xl shadow-black rounded-lg overflow-hidden border border-zinc-800">
-             {!streamReady && (
-                 <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 text-zinc-500 z-10">
-                     <span className="animate-pulse">Initializing Camera...</span>
-                 </div>
-             )}
-            <canvas
-              ref={canvasRef}
-              className="max-w-full max-h-[80vh] w-auto h-auto block"
-            />
-          </div>
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full object-contain block"
+          />
         )}
         
-        <div className="absolute bottom-4 left-4 text-xs text-zinc-600 font-mono pointer-events-none">
-            {streamReady ? 'STREAM: ACTIVE' : 'STREAM: CONNECTING...'}
-        </div>
+        {!streamReady && !error && (
+            <div className="absolute inset-0 flex items-center justify-center bg-zinc-900 text-zinc-500 z-10">
+                <span className="animate-pulse font-mono">INITIALIZING SYSTEM...</span>
+            </div>
+        )}
       </div>
 
+      {/* Floating UI Elements */}
+      <div className="absolute top-4 left-4 z-10 pointer-events-none">
+          <div className="text-xs text-emerald-500 font-mono bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
+             {streamReady ? '● LIVE' : '○ CONNECTING'}
+          </div>
+      </div>
+
+      <button 
+        onClick={() => setIsMenuOpen(true)}
+        className="absolute top-4 right-4 z-20 bg-zinc-900/80 backdrop-blur-md text-white p-3 rounded-full hover:bg-emerald-600 transition-colors shadow-lg border border-zinc-700"
+      >
+        <Menu size={24} />
+      </button>
+
+      {/* Controls Drawer */}
       <Controls 
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
         currentMode={mode}
         setMode={setMode}
         settings={settings}
