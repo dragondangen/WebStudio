@@ -1,0 +1,7 @@
+{
+  "name": "WebStudio",
+  "description": "A creative webcam playground featuring real-time ASCII, Matrix, Glitch, and Pixelation effects.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
